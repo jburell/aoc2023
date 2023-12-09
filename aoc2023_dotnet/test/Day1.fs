@@ -10,33 +10,54 @@ let dataDay1b = File.ReadLines(Path.Combine(TestContext.CurrentContext.TestDirec
 
 [<Test>]
 let Day1a () =
-    // Arrange
-    let expected = 54338
-    
-    // Act
-    let answer: int = dataDay1a |> Solution.runDay1a
-    
-    // Assert
-    Assert.AreEqual(expected, answer)
-    
+  // Arrange
+  let expected = 54338
+
+  // Act
+  let answer: int = dataDay1a |> Solution.runDay1a
+
+  // Assert
+  Assert.AreEqual(expected, answer)
+
 [<Test>]
 let Day1b () =
-    // Arrange
-    let expected = 54338
+  // Arrange
+  let expected = 54338
+
+  // Act
+  let answer: int = dataDay1b |> Solution.runDay1b
+
+  // Assert
+  Assert.AreEqual(expected, answer)
+        
     
-    // Act
-    let answer: int = dataDay1b |> Solution.runDay1b
-    
-    // Assert
-    Assert.AreEqual(expected, answer)
+[<Test>]
+let Day1bExample () =
+  // Arrange
+  let expected = 281
+  let data = """
+two1nine
+eightwothree
+abcone2threexyz
+xtwone3four
+4nineeightseven2
+zoneight234
+7pqrstsixteen
+"""
+  
+  // Act
+  let answer: int = data.Split([|'\n'; '\r'|]) |> Seq.filter (fun s -> s.Length > 0) |> Solution.runDay1b
+  
+  // Assert
+  Assert.AreEqual(expected, answer)
     
 [<Test>]
 let temp () =
-    // Arrange
-    let expected = 54338
-    
-    // Act
-    "two1five2three" |> Solution.extractWithFixedPattern "five" |> fun s -> Console.WriteLine($"%A{s}")
-    
-    // Assert
-    Assert.Pass()
+  // Arrange
+  let expected = "21523"
+  
+  // Act
+  let answer = "two1five2three" |> Solution.extractWithFixedPattern Solution.textToNumber |> fun s -> Console.WriteLine($"%A{s}"); s
+  
+  // Assert
+  Assert.AreEqual(expected, answer)

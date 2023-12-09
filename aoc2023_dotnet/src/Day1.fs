@@ -3,14 +3,16 @@
 open System
 open System.Collections.Generic
 open System.Text
+open FParsec.Pipes
 
 type private ValuePair =
   | None
   | FoundOne of char
   | FoundTwo of char * char
 
-let private textToNumber = [|
-  ("one", "1" )
+type Patterns = (string * string) list
+let textToNumber: Patterns = [
+  ("one", "1")
   ("two", "2")
   ("three", "3")
   ("four", "4")
@@ -19,28 +21,36 @@ let private textToNumber = [|
   ("seven", "7")
   ("eight", "8")
   ("nine", "9")
-  |]
+  ]
 
-let extractWithFixedPattern (patterns: string) (input: string)  =
-  let builder = StringBuilder()
-  let rec findPatterns acc (currentIndex: int) =
-    let subs = input.Substring(currentIndex, input.Length)
-    
-    let hit =
-      textToNumber
-      |> Array.map fst
-      |> Array.map (fun p -> (input.IndexOf(p, 0), p))
-      |> Array.filter(fun v -> fst v >= 0)
-    
-    hit
-    //let foundIndex = input.IndexOf(patterns, currentIndex)
-    //if foundIndex >= 0 then
-    //  findPatterns (foundIndex :: acc) (foundIndex + 1)
-    //else
-    //  List.rev acc
-
-  findPatterns input 0
-  //|> List.map (fun idx -> input.Substring(idx, patterns.Length))
+let extractWithFixedPattern (patterns: Patterns) (input: string)  =
+  let cuts =
+    patterns
+    |> List.map (fun (word, sub) ->
+        let pos = input.IndexOf(word)
+        let posLast = input.LastIndexOf(word)
+        (pos, posLast, (word, sub))
+      )
+    |> List.filter (fun (pos, _, _) -> pos >= 0)
+    //|> List.sortBy (fun (_, last, _) -> last)
+    |> List.sortBy (fun (pos, _, _) -> pos)
+    |> List.map (fun (a, _b, c) -> (a, c))
+    |> List.distinct
+  
+  StringBuilder()
+  |> fun b ->
+    cuts
+    |> List.fold (fun (pos, acc: StringBuilder) (curr, cut) ->
+        let keep =
+          if pos = curr
+          then ""
+          else input.Substring(pos, curr - pos)
+        let pos = curr + (fst cut).Length 
+        let acc = acc.Append(keep).Append(snd cut)
+        (pos, acc)
+      ) (0, b)
+  |> fun (_, b) -> b.ToString()
+  |> fun a -> Console.WriteLine a; a
 
 let private extractValuePairs acc n =
   match acc with
@@ -53,11 +63,8 @@ let private formatValuePair = function
   | FoundOne x -> $"{x}{x}"
   | FoundTwo (x, y) -> $"{x}{y}"
 
-//let replaceWordWithDigit
-
 let private convertWordsToDigits line =
-  line
-  //|> replaceWordWithDigit
+  extractWithFixedPattern textToNumber line
 
 let private lineToValue line =
   line
@@ -73,6 +80,8 @@ let runDay1a (data: IEnumerable<string>) =
  
 let runDay1b (data: IEnumerable<string>) = 
   data
+  |> Seq.indexed
+  |> Seq.map (fun (i, a) -> Console.WriteLine $"{i}: {a}"; a)
   |> Seq.map convertWordsToDigits
   |> Seq.map lineToValue
   |> Seq.sum
