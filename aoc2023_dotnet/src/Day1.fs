@@ -3,6 +3,7 @@
 open System
 open System.Collections.Generic
 open System.Text
+open FParsec
 open FParsec.Pipes
 
 type private ValuePair =
@@ -23,14 +24,27 @@ let textToNumber: Patterns = [
   ("nine", "9")
   ]
 
+let rec parseNumTxt patterns =
+  patterns
+  |> List.map fst
+  //|> List.toSeq
+  |> List.map pstring
+  //|> fun s -> CharParsers.pint32 :: s
+  |> fun s -> List.append [CharParsers.pint32]
+  |> choice
+  
+
 let extractWithFixedPattern (patterns: Patterns) (input: string)  =
+  let findFirstAndLastWord (word: string, sub) =
+    let pos = input.IndexOf(word)
+    let posLast = input.LastIndexOf(word)
+    if (pos + word.Length) > posLast
+    then (pos, posLast, (word, sub)) // Overlap case
+    else (pos, posLast, (word, sub))
+  
   let cuts =
     patterns
-    |> List.map (fun (word, sub) ->
-        let pos = input.IndexOf(word)
-        let posLast = input.LastIndexOf(word)
-        (pos, posLast, (word, sub))
-      )
+    |> List.map findFirstAndLastWord
     |> List.filter (fun (pos, _, _) -> pos >= 0)
     //|> List.sortBy (fun (_, last, _) -> last)
     |> List.sortBy (fun (pos, _, _) -> pos)

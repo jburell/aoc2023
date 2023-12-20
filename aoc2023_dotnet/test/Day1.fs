@@ -3,6 +3,7 @@ module Day1.Test
 open System
 open System.Collections
 open System.IO
+open FParsec
 open NUnit.Framework
 
 let dataDay1a = File.ReadLines(Path.Combine(TestContext.CurrentContext.TestDirectory, "data", "Day1a.txt"))
@@ -30,6 +31,11 @@ let Day1b () =
   // Assert
   Assert.AreEqual(expected, answer)
         
+
+[<Test>]
+let ``Test pattern match for number text``() =
+  let res = run (Solution.parseNumTxt Solution.textToNumber) "1one24threeight two"
+  Assert.AreEqual("test", res)
     
 [<Test>]
 let Day1bExample () =
